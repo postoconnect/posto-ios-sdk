@@ -12,8 +12,10 @@ and license live here. The SDK source is not distributed.
 
 - iOS 15+
 - Swift 5.9+ / Xcode 15+
-- A device that supports App Attest for production delivery. Simulator
-  integration uses the isolated test lane below.
+- App Attest capability (entitlement
+  `com.apple.developer.devicecheck.appattest-environment`) and a physical device
+  for production delivery. Simulator integration uses the isolated test lane
+  below.
 
 ## Installation (Swift Package Manager)
 
@@ -40,10 +42,20 @@ targets. The module is `PostoSDK` (the product is named Posto):
 import PostoSDK
 ```
 
-> **Before you ship:** Posto has validated the App Attest request path on a real
-> iPhone; the simulator cannot attest. Verify your own request →
-> impression → click flow on physical hardware against
-> `https://simulation.postoconnect.com` before releasing your app.
+Register the app in the [Developer console](https://postoconnect.com/dev/register),
+then open its **App profile** and complete **Production connection** with the
+exact Team ID and Bundle ID. That page also shows the app's **Platform ID**,
+placement IDs and **Developer test key** used below. Billable delivery starts
+once the app passes publisher review; until then production requests return
+`403 publisher_delivery_suspended`.
+
+> **Before you ship:** debug builds attest in Apple's *development* App Attest
+> environment, which production rejects (`app_attest_environment_invalid`).
+> Verify your request → impression → click flow on a physical iPhone against
+> `https://simulation.postoconnect.com` instead. Simulation is a separate stack
+> with its own accounts: sign up there, register the same Team ID and Bundle ID,
+> and pass that console's IDs plus `baseURL: URL(string: "https://simulation.postoconnect.com")!`
+> to `Posto.register`.
 
 ## Usage
 
@@ -56,6 +68,7 @@ Posto.register(
     platformId: "app_your_platform",  // your app's platform id from the Developer console (required)
     placementId: "plc_feed_inline",   // the ad placement to fill; must belong to that app (required)
     trackingLevel: .persistentUserID, // omit for .none — no user id stored/sent
+    // baseURL: goes here — defaults to https://postoconnect.com
     piiFilter: .standard              // default — omit unless you want .off/.enhanced
 )
 // register is LOCAL ONLY — it performs no network call.
@@ -90,7 +103,7 @@ render(ad)   // ad.headline, ad.body, ad.cta, ad.imageURL, ad.advertiser
 ## Simulator integration test
 
 The iOS Simulator cannot use App Attest. Register with the App's **Developer
-test key** to exercise the same typed request, rendering, impression, and click
+test key** (App profile page) to exercise the same typed request, rendering, impression, and click
 APIs against a fixed Posto test ad:
 
 ```swift
