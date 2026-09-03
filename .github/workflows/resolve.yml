@@ -22,5 +22,5 @@ jobs:
         run: |
           set -eu
           swift package resolve
-          swift package describe --type json | grep -q '"name" : "Posto"'
+          swift package describe --type json | grep -q '"name" : "PostoSDK"'
           find .build/artifacts -name "*.swiftinterface" | head -n 3

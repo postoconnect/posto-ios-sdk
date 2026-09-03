@@ -5,7 +5,7 @@ itself. Every request is bound to the device with App Attest and goes to
 `POST /v1/ads/request` — no third-party dependencies, `async/await` first.
 
 This repository is the public binary Swift package: `Package.swift` points at
-the compiled `Posto.xcframework` for each release, and the README, changelog
+the compiled `PostoSDK.xcframework` for each release, and the README, changelog
 and license live here. The SDK source is not distributed.
 
 ## Requirements
@@ -27,14 +27,18 @@ checksum.
 **Package.swift:**
 
 ```swift
-.package(url: "https://github.com/postoconnect/posto-ios-sdk.git", from: "3.1.0"),
+.package(url: "https://github.com/postoconnect/posto-ios-sdk.git", from: "4.0.0"),
 
 // …then add "Posto" to your target's dependencies (package = the repo name):
 .target(name: "MyApp", dependencies: [.product(name: "Posto", package: "posto-ios-sdk")]),
 ```
 
 The framework is dynamic; Xcode embeds and signs it automatically for app
-targets. Only `import Posto` is needed.
+targets. The module is `PostoSDK` (the product is named Posto):
+
+```swift
+import PostoSDK
+```
 
 > **Before you ship:** Posto has validated the App Attest request path on a real
 > iPhone; the simulator cannot attest. Verify your own request →
@@ -46,7 +50,7 @@ targets. Only `import Posto` is needed.
 Register once at launch:
 
 ```swift
-import Posto
+import PostoSDK
 
 Posto.register(
     platformId: "app_your_platform",  // your app's platform id from the Developer console (required)

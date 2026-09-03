@@ -1,18 +1,21 @@
 # Changelog
 
-## 3.1.0
+## 4.0.0
 
-- Distributed as a compiled `Posto.xcframework` (iOS device + Simulator)
+- Distributed as a compiled `PostoSDK.xcframework` (iOS device + Simulator)
   through the public binary Swift package
   <https://github.com/postoconnect/posto-ios-sdk>. The source package is no
   longer public; installation and usage documentation lives in that
   repository.
-- `PostoCore` is folded into the `Posto` module. Every type keeps its name and
-  `import Posto` already exposed all of them since 3.0.0, so integrator code
-  is unchanged; only an explicit `import PostoCore` has to go.
+- **Breaking:** the module is now `PostoSDK`; write `import PostoSDK` instead
+  of `import Posto`. The product you add in Xcode is still **Posto** and the
+  API is unchanged (`Posto.register`, `Posto.nativeFeed`, `AdContext`, …). A
+  Swift module cannot share its name with the public `Posto` namespace once a
+  stable module interface is emitted for binary distribution.
+- `PostoCore` is folded into the same module; an explicit `import PostoCore`
+  has to go. Every type keeps its name.
 - The binary targets iOS 15+ only. The macOS platform of the source package
   exists for tests and is not part of the distributed framework.
-- No API changes.
 
 ## 3.0.0
 

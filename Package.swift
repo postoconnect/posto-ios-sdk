@@ -10,12 +10,13 @@ let package = Package(
         .iOS(.v15)
     ],
     products: [
-        .library(name: "Posto", targets: ["Posto"])
+        // Product "Posto", module "PostoSDK": integrators `import PostoSDK`.
+        .library(name: "Posto", targets: ["PostoSDK"])
     ],
     targets: [
         .binaryTarget(
-            name: "Posto",
-            url: "https://postoconnect.com/sdk/ios/0.0.0/Posto.xcframework.zip",
+            name: "PostoSDK",
+            url: "https://postoconnect.com/sdk/ios/0.0.0/PostoSDK.xcframework.zip",
             checksum: "0000000000000000000000000000000000000000000000000000000000000000"
         )
     ]
