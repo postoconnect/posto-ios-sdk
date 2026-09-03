@@ -1,0 +1,26 @@
+name: Resolve binary package
+
+# Downloads the XCFramework named in Package.swift and verifies its checksum,
+# exactly as an integrator's Xcode would.
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+*"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve and inspect
+        run: |
+          set -eu
+          swift package resolve
+          swift package describe --type json | grep -q '"name" : "Posto"'
+          find .build/artifacts -name "*.swiftinterface" | head -n 3
