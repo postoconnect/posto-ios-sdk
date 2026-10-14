@@ -45,17 +45,15 @@ import PostoSDK
 Register the app in the [Developer console](https://postoconnect.com/dev/register),
 then open its **App profile** and complete **Production connection** with the
 exact Team ID and Bundle ID. That page also shows the app's **Platform ID**,
-placement IDs and **Developer test key** used below. Billable delivery starts
+placement IDs and **Publisher test key** used below. Billable delivery starts
 once the app passes publisher review; until then production requests return
 `403 publisher_delivery_suspended`.
 
-> **Before you ship:** debug builds attest in Apple's *development* App Attest
-> environment, which production rejects (`app_attest_environment_invalid`).
-> Verify your request → impression → click flow on a physical iPhone against
-> `https://simulation.postoconnect.com` instead. Simulation is a separate stack
-> with its own accounts: sign up there, register the same Team ID and Bundle ID,
-> and pass that console's IDs plus `baseURL: URL(string: "https://simulation.postoconnect.com")!`
-> to `Posto.register`.
+> **Before you ship:** debug builds use Apple's development App Attest
+> environment, which production rejects. Verify a TestFlight build on a
+> physical iPhone against `https://postoconnect.com` with the app's registered
+> Team ID, Bundle ID and production placement. Use the Publisher test key for
+> the isolated non-billable integration test below.
 
 ## Usage
 
@@ -97,12 +95,20 @@ guard let ad else {
     // No-fill is NOT an error — the backend had no relevant ad.
     return
 }
-render(ad)   // ad.headline, ad.body, ad.cta, ad.imageURL, ad.advertiser
+render(ad)   // your view displays the public fields and Sponsored label
+let onAdVisible = { try await ad.trackImpression() }
+let onAdTap = { try await Posto.presentClick(ad, from: viewController) }
 ```
+
+The closures above are **your App callbacks**, not SDK lifecycle methods.
+Call `onAdVisible()` from the view's visibility observer after the ad is
+visible. Call `onAdTap()` from the real button/tap handler; it opens the
+reported destination. Defining the closures sends no events. Do not call
+both immediately after `requestAd()`.
 
 ## Simulator integration test
 
-The iOS Simulator cannot use App Attest. Register with the App's **Developer
+The iOS Simulator cannot use App Attest. Register with the App's **Publisher
 test key** (App profile page) to exercise the same typed request, rendering, impression, and click
 APIs against a fixed Posto test ad:
 
@@ -111,20 +117,23 @@ Posto.registerForTesting(
     platformId: "app_your_platform",
     placementId: "plc_feed_inline",
     testKey: "your_developer_test_key",
-    baseURL: URL(string: "https://simulation.postoconnect.com")!
+    baseURL: URL(string: "https://postoconnect.com")!
 )
 
 let ad = try await Posto.nativeFeed.requestAd(
     format: .nativeCard,
-    context: AdContext(question: "Verify my Posto integration")
+    context: AdContext(messages: [.user("Find a quiet hotel in Chicago")])
 )
-try await ad?.trackImpression()
-let destination = try await ad?.clickURL()
+if let ad {
+    render(ad)
+    let onAdVisible = { try await ad.trackImpression() }
+    let onAdTap = { try await Posto.presentClick(ad, from: viewController) }
+}
 ```
 
 This calls `POST /v1/ads/request_non_attest`. It never enters an auction,
 spends an advertiser budget, creates Developer earnings, or trains the Campaign
-Agent. It always returns Posto's fixed test creative. Do not ship
+Agent. It returns a labelled demo ad when the conversation has supported shopping intent; no-fill is normal. Do not ship
 `registerForTesting` as the production registration path; physical devices must
 use `Posto.register` and App Attest.
 
@@ -150,13 +159,13 @@ Track an impression when the ad becomes visible (safe to call more than once —
 the server dedupes):
 
 ```swift
-try await ad.trackImpression()
+let onAdVisible = { try await ad.trackImpression() }
 ```
 
 Handle a tap (opens the destination in an in-app `SFSafariViewController`):
 
 ```swift
-try await Posto.presentClick(ad, from: viewController)   // iOS only
+let onAdTap = { try await Posto.presentClick(ad, from: viewController) }
 ```
 
 ## You must display a "Sponsored" label
@@ -276,8 +285,8 @@ unsigned billable request. Use your backend relay for production delivery, or
 
 > Because `isSupported` is false on every simulator, the real DeviceCheck path
 > only runs on a physical device — CI exercises a stub of the attestation
-> service, not Apple's implementation. Verify against
-> `https://simulation.postoconnect.com` on hardware before shipping.
+> service, not Apple's implementation. Verify a TestFlight build against
+> `https://postoconnect.com` on hardware before shipping.
 
 ## Migrating
 
