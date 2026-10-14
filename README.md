@@ -29,7 +29,7 @@ checksum.
 **Package.swift:**
 
 ```swift
-.package(url: "https://github.com/postoconnect/posto-ios-sdk.git", from: "4.0.0"),
+.package(url: "https://github.com/postoconnect/posto-ios-sdk.git", from: "4.2.0"),
 
 // …then add "Posto" to your target's dependencies (package = the repo name):
 .target(name: "MyApp", dependencies: [.product(name: "Posto", package: "posto-ios-sdk")]),

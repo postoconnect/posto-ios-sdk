@@ -16,8 +16,8 @@ let package = Package(
     targets: [
         .binaryTarget(
             name: "PostoSDK",
-            url: "https://postoconnect.com/sdk/ios/4.0.0/PostoSDK.xcframework.zip",
-            checksum: "de165fe5e5dd869d9558a440d49f5207c3d95f97374b5dde0afe87fc9c1e5991"
+            url: "https://postoconnect.com/sdk/ios/4.2.0/PostoSDK.xcframework.zip",
+            checksum: "61de4ab313b84b2d97d22fc6d240f8f966cc8d22ac7e6d55f6e0e2a9c0ba2fe9"
         )
     ]
 )
